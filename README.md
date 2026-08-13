@@ -3,6 +3,15 @@
 Interactive CLI auth system in Go, backed by Postgres, with bcrypt password
 hashing, TOTP 2FA, and session-based login.
 
+## Architecture
+
+![Architecture diagram](docs/architecture.png)
+
+`cli` is the only layer that touches a terminal. `authsvc` is the only layer
+that makes a security decision. `store` is the only layer that writes SQL.
+Solid arrows are calls; dashed arrows are what comes back (including the
+mid-`login` round trip back to the terminal for a 2FA code).
+
 ## Run it
 
 ```
