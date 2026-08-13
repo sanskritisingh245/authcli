@@ -31,30 +31,25 @@ func (s *Store) CreateUser(ctx context.Context, username, passwordHash string) (
 	return u, err
 }
 
-func (s *Store) FindByUsername(ctx context.Context, username string) (models.User, error) {
+const userColumns = `id, username, password_hash, failed_attempts, locked_until, last_login_at, created_at`
+
+func scanUser(row pgx.Row) (models.User, error) {
 	var u models.User
-	err := s.pool.QueryRow(ctx,
-		`SELECT id, username, password_hash, failed_attempts, locked_until, last_login_at, created_at
-		 FROM users WHERE username = $1`,
-		username,
-	).Scan(&u.ID, &u.Username, &u.PasswordHash, &u.FailedAttempts, &u.LockedUntil, &u.LastLoginAt, &u.CreatedAt)
+	err := row.Scan(&u.ID, &u.Username, &u.PasswordHash, &u.FailedAttempts, &u.LockedUntil, &u.LastLoginAt, &u.CreatedAt)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return models.User{}, ErrNotFound
 	}
 	return u, err
 }
 
+func (s *Store) FindByUsername(ctx context.Context, username string) (models.User, error) {
+	row := s.pool.QueryRow(ctx, `SELECT `+userColumns+` FROM users WHERE username = $1`, username)
+	return scanUser(row)
+}
+
 func (s *Store) GetUserByID(ctx context.Context, id int64) (models.User, error) {
-	var u models.User
-	err := s.pool.QueryRow(ctx,
-		`SELECT id, username, password_hash, failed_attempts, locked_until, last_login_at, created_at
-		 FROM users WHERE id = $1`,
-		id,
-	).Scan(&u.ID, &u.Username, &u.PasswordHash, &u.FailedAttempts, &u.LockedUntil, &u.LastLoginAt, &u.CreatedAt)
-	if errors.Is(err, pgx.ErrNoRows) {
-		return models.User{}, ErrNotFound
-	}
-	return u, err
+	row := s.pool.QueryRow(ctx, `SELECT `+userColumns+` FROM users WHERE id = $1`, id)
+	return scanUser(row)
 }
 
 func (s *Store) IncrementFailedAttempts(ctx context.Context, userID int64) (int, error) {
