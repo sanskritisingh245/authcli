@@ -5,7 +5,8 @@ hashing, TOTP 2FA, and session-based login.
 
 ## Architecture
 
-![Architecture diagram](docs/architecture.png)
+<img width="1452" height="643" alt="Screenshot 2026-08-13 at 9 25 37 PM" src="https://github.com/user-attachments/assets/a0e58af9-2d51-4cec-948a-b1bc207a0d97" />
+
 
 `cli` is the only layer that touches a terminal. `authsvc` is the only layer
 that makes a security decision. `store` is the only layer that writes SQL.
